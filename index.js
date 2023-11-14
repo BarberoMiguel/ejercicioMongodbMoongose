@@ -1,12 +1,29 @@
+const express = require('express')
+const cowsay = require('cowsay')
+const app = express()
+const port = 3000
+
+const morgan = require('./middlewares/morgan')
+
+app.use(morgan(':method :host :status - :response-time ms :body'));
+
 /* https://vegibit.com/mongoose-relationships-tutorial/ */
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/mongo-games')
     .then(() => console.log('Now connected to MongoDB!'))
     .catch(err => console.error('Something went wrong', err));
 
+//rutas
+const providersApiRoutes = require("./routes/providers_routes")
+const productsApiRoutes = require("./routes/products_routes")
+
+app.use(express.json());
+
 // Importar modelos
 const Game = require('./models/Game');
 const Publisher = require('./models/Publisher');
+const Provider = require('./models/Providers');
+const Product = require('./models/Products');
 
 // Crear publisher/compañía
 async function createPublisher(companyName, firstParty, website) {
@@ -51,14 +68,28 @@ async function listGames() {
     const games = await Game
         .find()
         .populate('publisher', 'companyName -_id')
-        .select('title publisher -_id');
+        // .select('title publisher -_id');
     console.log(games);
 }
 
+// Rutas
+app.use('/api/providers', providersApiRoutes);
+app.use('/api/products', productsApiRoutes);
 
-//createPublisher('Nintendo', true, 'https://www.nintendo.com/');
-//createPublisher('Sony', true, 'https://www.sony.com/');
-//createPublisher('Sega', true, 'https://www.sega.com/');
+
+
+app.listen(port, () => {
+    console.log(
+        cowsay.say({
+            text: `Nos vamos a por tortilla (si queda) Example app listening on port http://localhost:${port}`,
+            e: "oO",
+            T: "U "
+        }))
+  })
+
+// createPublisher('Nintendo', true, 'https://www.nintendo.com/');
+// createPublisher('Sony', true, 'https://www.sony.com/');
+// createPublisher('Sega', true, 'https://www.sega.com/');
 
 
 //createGame('Sonic the Hedgehog', '62ea5c8deb0cc4db1eb95366');
@@ -85,4 +116,4 @@ async function listGames() {
 //createGame2('Tetris', 'Nintendo');
 
 // Listar todos los juegos
-//listGames()
+// listGames()
